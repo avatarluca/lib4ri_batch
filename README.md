@@ -1,2 +1,2 @@
-# lib4ri_batch
-Batch edit MODS files
+# Lib4RI Batch
+Batch files for process automation jobs
