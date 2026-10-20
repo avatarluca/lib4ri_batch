@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USER="<user_name>"
+USER="Luca"
 
 CSV="/path/to/batch_update.csv"
 
