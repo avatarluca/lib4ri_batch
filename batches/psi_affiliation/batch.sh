@@ -2,7 +2,7 @@
 
 USER="Luca"
 
-CSV="/path/to/batch_update.csv"
+CSV="batch_update.csv"
 
 PIDSELECT=csv_column
 PIDOPTIONS="filename=$CSV|id_column=pub_id|delimiter=;|prefix=psi:"
