@@ -19,7 +19,7 @@ class change_psi_affiliation extends batch_edit_mods {
 
         foreach($names as $name) {
             $author_id = null;
-            foreach($name->getElementsByTagNameNS($this->mxds_namespaceURI,'nameIdentifier') as $identifier) {
+            foreach($name->getElementsByTagName('nameIdentifier') as $identifier) { // getElementsByTagNameNS($this->mxds_namespaceURI,'nameIdentifier')
                 if($identifier->getAttribute('type') == 'authorId') {
                     $author_id = $this->normalize_id($identifier->textContent);
                     break;
@@ -27,33 +27,64 @@ class change_psi_affiliation extends batch_edit_mods {
             }
 
             if($author_id === null || $author_id === '') continue;
-
+            
+            /*
+            Affiliation fields
+            <name type="personal">
+                <namePart type="family">...</namePart>
+                <namePart type="given">...</namePart>
+                <role>
+                    <roleTerm authority="marcrelator" type="text">author</roleTerm>
+                </role>
+                <alternativeName altType="formal_name">
+                    <namePart>...</namePart>
+                    <nameIdentifier type="authorId">psi-authors:9640</nameIdentifier>
+                </alternativeName>
+                <nameIdentifier type="organizational unit id">psi-units:751</nameIdentifier>
+                <affiliation type="group">...</affiliation>
+                <affiliation type="section"/>
+                <affiliation type="department">...</affiliation>
+                <affiliation type="division">...</affiliation>
+            </name>
+            */
+            // https://github.com/Lib4RI/lib4ri_pub_db/blob/7.x/utils/classes.inc#L519-L537
             foreach($csv_rows as $row) {
                 if(!isset($row['psi_author_id'])) continue;
                 if($this->normalize_id($row['psi_author_id']) !== $author_id) continue;
 
-                // Update the affiliation fields.
-                foreach (array('group', 'section', 'department', 'division') as $type) {
-                    if(isset($row[$type]) &&
-                        $this->set_tagged(
-                            $name,
-                            'affiliation',
-                            $type,
-                            $row[$type]
-                        )
-                    ) $edited = true;
+                // Update affiliation fields
+                foreach(array('group', 'section', 'department', 'division') as $type) {
+                    if(!isset($row[$type])) continue;
+
+                    foreach($name->getElementsByTagName('affiliation') as $affiliation) {
+                        if ($affiliation->getAttribute('type') === $type) {
+                            $value = trim($row[$type]);
+
+                            if($affiliation->textContent !== $value) {
+                                $affiliation->nodeValue = $value;
+                                $edited = true;
+                            }
+
+                            break;
+                        }
+                    }
                 }
 
-                // https://github.com/Lib4RI/lib4ri_pub_db/blob/7.x/utils/classes.inc#L519-L537
-                if (
-                    isset($row['org_unit_id']) &&
-                    $this->set_tagged(
-                        $name,
-                        'nameIdentifier',
-                        'organizational unit id',
-                        $row['org_unit_id']
-                    )
-                ) $edited = true;
+                // Update organisational unit id
+                if(isset($row['org_unit_id'])) {
+                    foreach($name->getElementsByTagName('nameIdentifier') as $identifier) {
+                        if($identifier->getAttribute('type') === 'organizational unit id') {
+                            $value = trim($row['org_unit_id']);
+
+                            if($identifier->textContent !== $value) {
+                                $identifier->nodeValue = $value;
+                                $edited = true;
+                            }
+
+                            break;
+                        }
+                    }
+                }
 
                 break;
             }
@@ -63,9 +94,6 @@ class change_psi_affiliation extends batch_edit_mods {
     }
 
 
-    /**
-     * Make "psi:1234" and "1234" comparable.
-     */
     private function normalize_id($id) {
         $id = trim((string) $id);
         $colon = strrpos($id, ':');
@@ -77,6 +105,8 @@ class change_psi_affiliation extends batch_edit_mods {
     /**
      * Update, create or remove a typed XML element.
      */
+    /*
+    // TODO: refactor version with new fields
     private function set_tagged($parent, $tag, $type, $value) {
         $value = trim((string) $value);
         $node = null;
@@ -119,4 +149,5 @@ class change_psi_affiliation extends batch_edit_mods {
 
         return true;
     }
+    */
 }
