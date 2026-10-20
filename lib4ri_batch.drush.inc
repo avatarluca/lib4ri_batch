@@ -4,6 +4,7 @@ include_once "includes/pid_set.inc";
 include_once "includes/commands.inc";
 include_once "includes/log.inc";
 include_once "includes/delay.inc";
+include_once 'includes/csv_pid_set.inc';
 
 /**
  * @file
