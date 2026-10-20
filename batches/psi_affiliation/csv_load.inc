@@ -31,6 +31,33 @@ class csv_load {
 
         return $cache[$file] = $rows;
     }
+
+    /**
+     * Load csv file with PID and author ID distinction (field names "pub_id" and "psi_author_id").
+     *
+     * @param string $file      Path to CSV file.
+     * @param string $delimiter Field separator (semicolon as default).
+     * @return array            List of rows in a 2D array with keys PID and author ID.
+     */
+    public static function by_pub_id($file, $delimiter = ';') {
+        $grouped = array();
+
+        foreach(self::rows($file, $delimiter) as $row) {
+            if(!isset($row['pub_id']) || !isset($row['psi_author_id'])) continue;
+
+            $pub_id = trim((string) $row['pub_id']);
+            $author_id = trim((string) $row['psi_author_id']);
+
+            $colon = strrpos($pub_id, ':');
+            if($colon !== false) $pub_id = substr($pub_id, $colon + 1);
+
+            if($pub_id === '' || $author_id === '') continue;
+
+            $grouped[$pub_id][$author_id] = $row;
+        }
+
+        return $grouped;
+    }
 }
 
 
