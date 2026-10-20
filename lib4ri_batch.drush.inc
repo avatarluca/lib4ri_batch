@@ -6,6 +6,10 @@ include_once "includes/log.inc";
 include_once "includes/delay.inc";
 include_once 'includes/csv_pid_set.inc';
 
+foreach(glob(dirname(__FILE__) . '/batches/*/*.inc') as $batch_file) {
+    include_once $batch_file;
+}
+
 /**
  * @file
  * MODS bacth edit drush command.
@@ -140,6 +144,10 @@ function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command,
     
     // Grab the next object in the namespace.
     $pid = $sandbox['pids_class']->get_pid();
+
+    // Pass the CSV rows for the current PID to commands whose PID selector provides row data
+    if(method_exists($sandbox['pids_class'],'get_rows_for_pid')) $command_options['csv_rows'] = $sandbox['pids_class']->get_rows_for_pid($pid);
+
     // Duplicate the object represented by the return value from the query.
     $context['message'] = '('.($sandbox['current_index']+1).'/'.$sandbox['total'].')'.lib4ri_batch_exec_command($command, $pid, $dry, $command_options); //DO STUFF HERE!!!!
     if ($log){
@@ -163,7 +171,9 @@ function lib4ri_batch_dora_batch_batch_operation($pids, $pids_options, $command,
 }
 
 function read_options($options_str){
-    $options = [];
+    $options = array();
+    if(!is_string($options_str) || trim($options_str) === '') return $options;
+    
     $options_str_a = explode('|',$options_str);
     foreach ($options_str_a as $option){
         $kv = explode('=',$option);
