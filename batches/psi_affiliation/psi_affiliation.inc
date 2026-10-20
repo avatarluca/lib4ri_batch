@@ -30,7 +30,7 @@ class change_psi_affiliation extends batch_edit_mods{
         $this->set_xpath();
         $edited = false;
         $names = $this->get_xpath()->query('//mods:mods/mods:name [@type="personal"]');
-        foreach ($names as $name){
+        foreach($names as $name){
             $author_id = null;
             foreach($name->getElementsByTagName('nameIdentifier') as $id){
                 if($id->getAttribute('type') == 'authorId') $author_id = trim($id->nodeValue);
@@ -77,7 +77,7 @@ class change_psi_affiliation extends batch_edit_mods{
         if($node->nodeValue == $value) return false;
 
         $node->nodeValue = $value;
-        
+
         return true;
     }
 }
